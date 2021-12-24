@@ -26,10 +26,22 @@ def draw_text(img, text,
 
     return text_size
 
-def music(tones):
-    import winsound
-    winsound.PlaySound(tones, winsound.SND_FILENAME|winsound.SND_NOWAIT)
+_cache_sound = {}
+def music(tones, cache = False):
+    #import winsound
+    #winsound.PlaySound(tones, winsound.SND_FILENAME|winsound.SND_NOWAIT)
+    import simpleaudio as sa
+    global _cache_sound
+    wave_obj = None
 
+    if tones in _cache_sound:
+        wave_obj = _cache_sound [tones]
+    else:
+        wave_obj = _cache_sound [tones] = sa.WaveObject.from_wave_file(tones)
+
+    if not cache:
+        wave_obj.play()
+  
 def beep(name):
     import threading
     x = threading.Thread(target=music, args=(name,), daemon=True)
@@ -74,8 +86,13 @@ if __name__ == "__main__":
 
     window = 'GAMEFia'
 
+   
+
     cv2.namedWindow(window, cv2.WND_PROP_FULLSCREEN)
     #cv2.setWindowProperty(window,cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
+
+    music("./angry.wav", True)
+    music("./nice.wav", True)
 
     # For webcam input:
     cap = cv2.VideoCapture(0)
@@ -192,7 +209,7 @@ if __name__ == "__main__":
                     dst = ((wrist.x-mcp.x) ** 2 + (wrist.y-mcp.y)**2)
                     dst = 11.2 / (dst ** .5)
 
-                    if previousDistance > 0 and abs(previousDistance - dst) > 4:
+                    if previousDistance > 0 and abs(previousDistance - dst) > 4 and (time.time() - currentTime)<.3:
                         if not pressed and previousDistance > dst:
                             pressed = True
                             ix = (x_max + x_min) // 2
@@ -230,7 +247,7 @@ if __name__ == "__main__":
                         if not holded and borderx > x_min and borderx < x_max and bordery > y_min and bordery < y_max:
                             holded = True
                             score += 1   
-                            beep("angry.wav")
+                            music("./angry.wav")
                             vx = vx if random.randrange(30) < 15 else -vx
                             vy = vy if random.randrange(30) < 15 else -vy
                             a = getAngle(vx,vy)
@@ -242,7 +259,7 @@ if __name__ == "__main__":
 
 
                         else:
-                            beep("metal.wav")
+                            music("./nice.wav")
                               
             
                     if pressed:    
